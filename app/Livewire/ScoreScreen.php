@@ -26,19 +26,14 @@ class ScoreScreen extends Component
         $totalQuestions = $room->quiz->questions->count();
 
         $filename = "results_{$this->code}.csv";
-        $handle = fopen('php://temp', 'w+');
-        fputcsv($handle, ['Name', 'Score', 'Total Questions']);
+        return response()->streamDownload(function () use ($players, $totalQuestions) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Naam', 'Score', 'Totaal Vragen']);
 
-        foreach ($players as $player) {
-            fputcsv($handle, [$player->name, $player->score, $totalQuestions]);
-        }
-
-        rewind($handle);
-        $content = stream_get_contents($handle);
-        fclose($handle);
-
-        return response()->streamDownload(function () use ($content) {
-            echo $content;
+            foreach ($players as $player) {
+                fputcsv($handle, [$player->name, $player->score, $totalQuestions]);
+            }
+            fclose($handle);
         }, $filename);
     }
 

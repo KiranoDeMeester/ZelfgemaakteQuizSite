@@ -20,31 +20,62 @@
                 {{ $question->question }}
             </h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                @foreach($question->answers as $index => $answer)
-                    <button 
-                        @if(!$isHost && !$hasAnswered) wire:click="submitAnswer({{ $answer->id }})" @endif
-                        @disabled($isHost || $hasAnswered)
-                        class="relative group p-6 rounded-2xl text-left transition-all duration-300 border-2 
-                        {{ $hasAnswered && $selectedAnswerId == $answer->id ? 'border-blue-500 bg-blue-500/20' : 'border-slate-700 bg-slate-800/50 hover:border-slate-500' }}
-                        {{ $isHost ? 'cursor-default' : '' }}
-                        {{ $hasAnswered && $selectedAnswerId != $answer->id ? 'opacity-50' : '' }}">
-                        
-                        <div class="flex items-center gap-4">
-                            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white group-hover:bg-slate-600 transition-colors">
-                                {{ chr(65 + $index) }}
-                            </span>
-                            <span class="text-xl font-semibold text-white">{{ $answer->text }}</span>
-                        </div>
-
-                        @if($hasAnswered && $selectedAnswerId == $answer->id)
-                            <div class="absolute top-2 right-2">
-                                <div class="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+            @if($isHost)
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    @foreach($playerStatuses as $status)
+                        <div class="flex items-center justify-between p-4 rounded-xl border {{ $status['has_answered'] ? ($status['is_correct'] ? 'bg-emerald-500/10 border-emerald-500/50' : 'bg-red-500/10 border-red-500/50') : 'bg-slate-800/50 border-slate-700' }}">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold {{ $status['has_answered'] ? ($status['is_correct'] ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white') : 'bg-slate-700 text-slate-400' }}">
+                                    @if($status['has_answered'])
+                                        {!! $status['is_correct'] ? '✓' : '✗' !!}
+                                    @else
+                                        ?
+                                    @endif
+                                </div>
+                                <span class="font-semibold {{ $status['has_answered'] ? 'text-white' : 'text-slate-400' }}">{{ $status['name'] }}</span>
                             </div>
-                        @endif
-                    </button>
-                @endforeach
-            </div>
+                            @if($status['has_answered'])
+                                <span class="text-[10px] font-black uppercase tracking-widest {{ $status['is_correct'] ? 'text-emerald-400' : 'text-red-400' }}">
+                                    {{ $status['is_correct'] ? 'Correct' : 'Fout' }}
+                                </span>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                
+                <div class="mt-10 pt-8 border-t border-slate-700/50">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Correct Antwoord</h3>
+                    <div class="bg-emerald-500/20 border border-emerald-500/50 p-4 rounded-xl text-emerald-400 font-bold text-xl">
+                        {{ $question->answers->where('is_correct', true)->first()?->text }}
+                    </div>
+                </div>
+            @else
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @foreach($question->answers as $index => $answer)
+                        <button 
+                            @if(!$isHost && !$hasAnswered) wire:click="submitAnswer({{ $answer->id }})" @endif
+                            @disabled($isHost || $hasAnswered)
+                            class="relative group p-6 rounded-2xl text-left transition-all duration-300 border-2 
+                            {{ $hasAnswered && $selectedAnswerId == $answer->id ? 'border-blue-500 bg-blue-500/20' : 'border-slate-700 bg-slate-800/50 hover:border-slate-500' }}
+                            {{ $isHost ? 'cursor-default' : '' }}
+                            {{ $hasAnswered && $selectedAnswerId != $answer->id ? 'opacity-50' : '' }}">
+                            
+                            <div class="flex items-center gap-4">
+                                <span class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white group-hover:bg-slate-600 transition-colors">
+                                    {{ chr(65 + $index) }}
+                                </span>
+                                <span class="text-xl font-semibold text-white">{{ $answer->text }}</span>
+                            </div>
+
+                            @if($hasAnswered && $selectedAnswerId == $answer->id)
+                                <div class="absolute top-2 right-2">
+                                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                                </div>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         @if($isHost)

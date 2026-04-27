@@ -83,9 +83,7 @@ class QuizPlay extends Component
         return redirect()->route('host');
     }
 
-    public function render()
-    {
-        $room = Room::where('code', $this->code)->with(['currentQuestion.answers', 'players'])->first();
+        $room = Room::where('code', $this->code)->with(['currentQuestion.answers', 'players.playerAnswers'])->first();
         
         if (!$room) {
             return view('livewire.error-page', ['message' => 'Quiz sessie niet gevonden.'])
@@ -116,13 +114,27 @@ class QuizPlay extends Component
             $this->lastQuestionId = $room->current_question_id;
         }
 
+        // Host specific data
+        $playerStatuses = [];
+        if ($this->isHost) {
+            foreach ($room->players as $player) {
+                $answer = $player->playerAnswers()->where('question_id', $room->current_question_id)->first();
+                $playerStatuses[] = [
+                    'name' => $player->name,
+                    'has_answered' => !is_null($answer),
+                    'is_correct' => $answer ? $answer->is_correct : false
+                ];
+            }
+        }
+
         return view('livewire.quiz-play', [
             'room' => $room,
             'question' => $room->currentQuestion,
             'totalPlayers' => $room->players->count(),
             'answeredCount' => PlayerAnswer::where('question_id', $room->current_question_id)
                 ->whereIn('player_id', $room->players->pluck('id'))
-                ->count()
+                ->count(),
+            'playerStatuses' => $playerStatuses
         ])->layout('layouts.app');
     }
 }
