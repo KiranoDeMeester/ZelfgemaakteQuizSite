@@ -60,30 +60,21 @@ class QuizPlay extends Component
         if (!$this->isHost) return;
 
         $room = Room::where('code', $this->code)->first();
-        $nextQ = $service->getNextQuestion($room, $room->current_question_id);
-
-        if ($nextQ) {
-            $room->update(['current_question_id' => $nextQ->id]);
-        } else {
-            $room->update(['status' => 'finished']);
-        }
+        $service->moveToNextQuestion($room);
     }
 
-    public function closeRoom()
+    public function closeRoom(RoomService $roomService)
     {
-        // Re-verify host status directly from session
         if (!session('host_room_' . $this->code)) {
             return;
         }
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
-            $room->update(['status' => 'finished']);
+            $roomService->finishRoom($room);
         }
 
-        session()->forget('host_room_' . $this->code);
-        
-        $this->redirect(route('host'), navigate: true);
+        return $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
     }
 
     public function render()
@@ -96,9 +87,7 @@ class QuizPlay extends Component
         }
 
         if ($room->status === 'finished') {
-            $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
-            return view('livewire.error-page', ['message' => 'Resultaten berekenen...'])
-                ->layout('layouts.app');
+            return $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
         }
 
         // Sync question state for players

@@ -37,4 +37,35 @@ class QuizRunnerService
 
         return $query->orderBy('id', 'asc')->first();
     }
+
+    public function moveToNextQuestion(Room $room): bool
+    {
+        $nextQ = $this->getNextQuestion($room, $room->current_question_id);
+
+        if ($nextQ) {
+            $room->update(['current_question_id' => $nextQ->id]);
+            return true;
+        } else {
+            $room->update(['status' => 'finished']);
+            return false;
+        }
+    }
+
+    public function generateCsvExport(Room $room)
+    {
+        $players = $room->players->sortByDesc('score');
+        $totalQuestions = $room->quiz->questions->count();
+
+        $callback = function () use ($players, $totalQuestions) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Naam', 'Score', 'Totaal Vragen']);
+
+            foreach ($players as $player) {
+                fputcsv($handle, [$player->name, $player->score, $totalQuestions]);
+            }
+            fclose($handle);
+        };
+
+        return $callback;
+    }
 }

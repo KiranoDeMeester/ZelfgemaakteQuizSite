@@ -24,7 +24,7 @@ class Lobby extends Component
         }
     }
 
-    public function startQuiz()
+    public function startQuiz(RoomService $roomService)
     {
         if (!$this->isHost) return;
 
@@ -35,24 +35,23 @@ class Lobby extends Component
             return;
         }
 
-        $room->update(['status' => 'active']);
+        $roomService->startRoom($room);
     }
 
-    public function closeRoom()
+    public function closeRoom(RoomService $roomService)
     {
-        // Re-verify host status directly from session for maximum reliability
         if (!session('host_room_' . $this->code)) {
             return;
         }
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
-            $room->update(['status' => 'finished']);
+            $roomService->finishRoom($room);
         }
         
         session()->forget('host_room_' . $this->code);
         
-        $this->redirect(route('host'), navigate: true);
+        return $this->redirect(route('host'), navigate: true);
     }
 
     public function render()
@@ -65,20 +64,16 @@ class Lobby extends Component
         }
 
         if ($room->status === 'active') {
-            $this->redirect(route('room.play', ['code' => $this->code]), navigate: true);
-            return view('livewire.error-page', ['message' => 'Doorsturen naar quiz...'])
-                ->layout('layouts.app');
+            return $this->redirect(route('room.play', ['code' => $this->code]), navigate: true);
         }
 
         if ($room->status === 'finished') {
             if ($this->isHost) {
-                $this->redirect(route('host'), navigate: true);
+                return $this->redirect(route('host'), navigate: true);
             } else {
                 session()->flash('error', 'De host heeft de room gesloten.');
-                $this->redirect(route('join'), navigate: true);
+                return $this->redirect(route('join'), navigate: true);
             }
-            return view('livewire.error-page', ['message' => 'Kamer is gesloten.'])
-                ->layout('layouts.app');
         }
 
         return view('livewire.lobby', [

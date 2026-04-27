@@ -17,4 +17,14 @@ class RoomService
             'status' => 'waiting'
         ]);
     }
+
+    public function startRoom(Room $room): void
+    {
+        $room->update(['status' => 'active']);
+    }
+
+    public function finishRoom(Room $room): void
+    {
+        $room->update(['status' => 'finished']);
+    }
 }

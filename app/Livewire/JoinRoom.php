@@ -27,6 +27,20 @@ class JoinRoom extends Component
 
         $room = Room::where('code', $this->roomCode)->first();
 
+        if ($room->status === 'finished') {
+            $this->addError('roomCode', 'Deze quiz is al afgelopen.');
+            return;
+        }
+
+        // Check if player already joined this room
+        $existingPlayerId = session('player_id');
+        if ($existingPlayerId) {
+            $existingPlayer = \App\Models\Player::find($existingPlayerId);
+            if ($existingPlayer && $existingPlayer->room_id === $room->id) {
+                return redirect()->route('room.lobby', ['code' => $room->code]);
+            }
+        }
+
         // Create player
         $player = $room->players()->create([
             'name' => $this->name,

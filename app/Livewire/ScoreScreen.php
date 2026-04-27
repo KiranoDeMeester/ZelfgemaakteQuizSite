@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Room;
 use App\Models\Player;
+use App\Services\QuizRunnerService;
 use Livewire\Component;
 
 class ScoreScreen extends Component
@@ -19,22 +20,12 @@ class ScoreScreen extends Component
         }
     }
 
-    public function exportCsv()
+    public function exportCsv(QuizRunnerService $service)
     {
         $room = Room::where('code', $this->code)->with('players', 'quiz')->first();
-        $players = $room->players->sortByDesc('score');
-        $totalQuestions = $room->quiz->questions->count();
-
-        $filename = "results_{$this->code}.csv";
-        return response()->streamDownload(function () use ($players, $totalQuestions) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Naam', 'Score', 'Totaal Vragen']);
-
-            foreach ($players as $player) {
-                fputcsv($handle, [$player->name, $player->score, $totalQuestions]);
-            }
-            fclose($handle);
-        }, $filename);
+        $callback = $service->generateCsvExport($room);
+        
+        return response()->streamDownload($callback, "results_{$this->code}.csv");
     }
 
     public function render()

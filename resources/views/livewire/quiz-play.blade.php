@@ -1,4 +1,4 @@
-<div wire:poll.1s class="space-y-6">
+<div wire:poll.2s class="space-y-6">
     <div class="flex justify-between items-center mb-4">
         <div class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 text-sm font-bold text-blue-400 uppercase tracking-wider">
             Room: {{ $code }}
