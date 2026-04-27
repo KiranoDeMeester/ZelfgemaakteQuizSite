@@ -3,27 +3,43 @@
 namespace App\Livewire;
 
 use App\Models\Quiz;
+use App\Services\QuizService;
 use Livewire\Component;
 
 class QuizList extends Component
 {
     public $newQuizTitle = '';
+    public $quizIdToDelete = null;
 
-    public function createQuiz(\App\Services\QuizService $service)
+    public function confirmDelete($id)
+    {
+        $this->quizIdToDelete = $id;
+    }
+
+    public function cancelDelete()
+    {
+        $this->quizIdToDelete = null;
+    }
+
+    public function createQuiz()
     {
         $this->validate([
             'newQuizTitle' => 'required|min:3|max:255'
         ]);
 
-        $quiz = $service->createQuiz($this->newQuizTitle);
+        $quiz = app(QuizService::class)->createQuiz($this->newQuizTitle);
         $this->newQuizTitle = '';
         
         return $this->redirect(route('quizzes.edit', ['id' => $quiz->id]), navigate: true);
     }
 
-    public function deleteQuiz($id, \App\Services\QuizService $service)
+    public function deleteQuiz()
     {
-        $service->deleteQuiz($id);
+        if ($this->quizIdToDelete) {
+            app(QuizService::class)->deleteQuiz($this->quizIdToDelete);
+            $this->quizIdToDelete = null;
+            $this->dispatch('toast', message: 'Quiz succesvol verwijderd.', type: 'success');
+        }
     }
 
     public function render()

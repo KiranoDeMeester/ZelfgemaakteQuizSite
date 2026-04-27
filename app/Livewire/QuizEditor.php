@@ -38,10 +38,10 @@ class QuizEditor extends Component
         if ($this->editingQuestionId) {
             $question = Question::findOrFail($this->editingQuestionId);
             $service->updateQuestion($question, $this->questionText, $this->timeLimit, $this->answers, $this->imageUrl);
-            session()->flash('success', 'Vraag bijgewerkt!');
+            $this->dispatch('toast', message: 'Vraag bijgewerkt!', type: 'success');
         } else {
             $service->addQuestion($this->quiz, $this->questionText, $this->timeLimit, $this->answers, $this->imageUrl);
-            session()->flash('success', 'Vraag toegevoegd!');
+            $this->dispatch('toast', message: 'Vraag toegevoegd!', type: 'success');
         }
 
         $this->reset(['questionText', 'imageUrl', 'timeLimit', 'editingQuestionId']);

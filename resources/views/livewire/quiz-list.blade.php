@@ -32,8 +32,7 @@
                         <h3 class="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">{{ $quiz->title }}</h3>
                         <p class="text-slate-500 font-mono text-sm uppercase tracking-widest mt-1">{{ $quiz->questions_count }} vragen</p>
                     </div>
-                    <button wire:click="deleteQuiz({{ $quiz->id }})" 
-                            wire:confirm="Weet je zeker dat je deze quiz wilt verwijderen? Alle vragen en antwoorden gaan verloren!"
+                    <button wire:click="confirmDelete({{ $quiz->id }})" 
                             class="text-slate-600 hover:text-red-400 p-2 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -53,4 +52,29 @@
             </div>
         @endforeach
     </div>
+
+    <!-- Custom Modal -->
+    @if($quizIdToDelete)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div class="glass max-w-md w-full p-8 rounded-3xl shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
+                <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-white text-center mb-2">Quiz verwijderen?</h2>
+                <p class="text-slate-400 text-center mb-8">Weet je zeker dat je deze quiz wilt verwijderen? Alle vragen en antwoorden gaan definitief verloren.</p>
+                
+                <div class="flex flex-col gap-3">
+                    <button wire:click="deleteQuiz" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl transition-all">
+                        Ja, Verwijder Quiz
+                    </button>
+                    <button wire:click="cancelDelete" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-all border border-slate-700">
+                        Annuleren
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

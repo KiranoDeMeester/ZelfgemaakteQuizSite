@@ -13,6 +13,7 @@ class Lobby extends Component
     public $code;
     public $qrUrl;
     public $isHost = false;
+    public $showCloseConfirmation = false;
 
     public function mount($code, QrService $qrService)
     {
@@ -25,23 +26,33 @@ class Lobby extends Component
         }
     }
 
-    public function startQuiz(RoomService $roomService)
+    public function confirmClose()
+    {
+        $this->showCloseConfirmation = true;
+    }
+
+    public function cancelClose()
+    {
+        $this->showCloseConfirmation = false;
+    }
+
+    public function startQuiz()
     {
         if (!$this->isHost) return;
 
         $room = Room::where('code', $this->code)->withCount('players')->first();
         
         if ($room->players_count === 0) {
-            session()->flash('error', 'Je kunt de quiz niet starten zonder spelers!');
+            $this->dispatch('toast', message: 'Je kunt de quiz niet starten zonder spelers!', type: 'error');
             return;
         }
 
-        $roomService->startRoom($room);
+        app(RoomService::class)->startRoom($room);
 
         return $this->redirect(route('room.play', ['code' => $this->code]), navigate: true);
     }
 
-    public function closeRoom(RoomService $roomService)
+    public function closeRoom()
     {
         if (!session('host_room_' . $this->code)) {
             return;
@@ -49,7 +60,7 @@ class Lobby extends Component
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
-            $roomService->finishRoom($room);
+            app(RoomService::class)->finishRoom($room);
         }
         
         session()->forget('host_room_' . $this->code);
@@ -74,6 +85,7 @@ class Lobby extends Component
             if ($this->isHost) {
                 return $this->redirect(route('host'), navigate: true);
             } else {
+                // We'll let the user see the message on the join page
                 session()->flash('error', 'De host heeft de room gesloten.');
                 return $this->redirect(route('join'), navigate: true);
             }

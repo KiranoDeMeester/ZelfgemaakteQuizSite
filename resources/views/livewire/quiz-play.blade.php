@@ -1,4 +1,4 @@
-<div wire:poll.2s class="space-y-6">
+<div @if(!$showEndConfirmation) wire:poll.2s @endif class="space-y-6">
     <div class="flex justify-between items-center mb-4">
         <div class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 text-sm font-bold text-blue-400 uppercase tracking-wider">
             Room: {{ $code }}
@@ -108,8 +108,7 @@
                     </svg>
                 </button>
 
-                <button wire:click="closeRoom" 
-                        wire:confirm="Weet je zeker dat je de quiz wilt beëindigen?"
+                <button wire:click="confirmEnd" 
                         class="text-slate-500 hover:text-red-400 text-sm font-semibold transition-colors flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -125,6 +124,31 @@
     @else
         <div class="glass rounded-3xl p-12 text-center">
             <h2 class="text-2xl font-bold text-gray-500">Geen vragen gevonden...</h2>
+        </div>
+    @endif
+
+    <!-- Custom Modal -->
+    @if($showEndConfirmation)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div class="glass max-w-md w-full p-8 rounded-3xl shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
+                <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white text-center mb-2">Quiz beëindigen?</h2>
+                <p class="text-slate-400 text-center mb-8">Weet je zeker dat je de quiz nu wilt stoppen? Je gaat direct naar het eindscherm.</p>
+
+                <div class="flex flex-col gap-3">
+                    <button wire:click="closeRoom" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl transition-all">
+                        Ja, Stop Quiz
+                    </button>
+                    <button wire:click="cancelEnd" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-all border border-slate-700">
+                        Annuleren
+                    </button>
+                </div>
+            </div>
         </div>
     @endif
 </div>

@@ -80,12 +80,6 @@
 
         <!-- Questions List -->
         <div class="lg:col-span-2 space-y-4">
-            @if(session()->has('success'))
-                <div class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold animate-in slide-in-from-top-4 duration-300">
-                    {{ session('success') }}
-                </div>
-            @endif
-
             <h2 class="text-2xl font-bold text-white mb-6">Huidige Vragen ({{ $questions->count() }})</h2>
 
             @forelse($questions as $index => $q)

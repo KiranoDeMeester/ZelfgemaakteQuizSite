@@ -18,6 +18,7 @@ class QuizPlay extends Component
     public $hasAnswered = false;
     public $selectedAnswerId = null;
     public $lastQuestionId = null;
+    public $showEndConfirmation = false;
 
     public function mount($code, QuizRunnerService $service)
     {
@@ -45,7 +46,17 @@ class QuizPlay extends Component
         $this->lastQuestionId = $room->current_question_id;
     }
 
-    public function submitAnswer($answerId, QuizRunnerService $service)
+    public function confirmEnd()
+    {
+        $this->showEndConfirmation = true;
+    }
+
+    public function cancelEnd()
+    {
+        $this->showEndConfirmation = false;
+    }
+
+    public function submitAnswer($answerId)
     {
         if ($this->isHost || $this->hasAnswered) return;
 
@@ -65,20 +76,20 @@ class QuizPlay extends Component
 
         if (!$question || !$answer) return;
 
-        $service->submitAnswer($player, $question, $answer);
+        app(QuizRunnerService::class)->submitAnswer($player, $question, $answer);
         $this->hasAnswered = true;
         $this->selectedAnswerId = $answerId;
     }
 
-    public function nextQuestion(QuizRunnerService $service)
+    public function nextQuestion()
     {
         if (!$this->isHost) return;
 
         $room = Room::where('code', $this->code)->first();
-        $service->moveToNextQuestion($room);
+        app(QuizRunnerService::class)->moveToNextQuestion($room);
     }
 
-    public function closeRoom(RoomService $roomService)
+    public function closeRoom()
     {
         if (!session('host_room_' . $this->code)) {
             return;
@@ -86,7 +97,7 @@ class QuizPlay extends Component
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
-            $roomService->finishRoom($room);
+            app(RoomService::class)->finishRoom($room);
         }
 
         return $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
