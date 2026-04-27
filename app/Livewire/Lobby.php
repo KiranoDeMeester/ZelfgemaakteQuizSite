@@ -47,7 +47,7 @@ class Lobby extends Component
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
-            $room->update(['status' => 'closed']);
+            $room->update(['status' => 'finished']);
         }
         
         session()->forget('host_room_' . $this->code);
@@ -70,7 +70,7 @@ class Lobby extends Component
                 ->layout('layouts.app');
         }
 
-        if ($room->status === 'closed') {
+        if ($room->status === 'finished') {
             if ($this->isHost) {
                 $this->redirect(route('host'), navigate: true);
             } else {

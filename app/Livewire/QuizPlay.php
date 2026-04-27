@@ -78,7 +78,7 @@ class QuizPlay extends Component
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
-            $room->update(['status' => 'closed']);
+            $room->update(['status' => 'finished']);
         }
 
         session()->forget('host_room_' . $this->code);
@@ -98,17 +98,6 @@ class QuizPlay extends Component
         if ($room->status === 'finished') {
             $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
             return view('livewire.error-page', ['message' => 'Resultaten berekenen...'])
-                ->layout('layouts.app');
-        }
-
-        if ($room->status === 'closed') {
-            if ($this->isHost) {
-                $this->redirect(route('host'), navigate: true);
-            } else {
-                session()->flash('error', 'De host heeft de quiz beëindigd.');
-                $this->redirect(route('join'), navigate: true);
-            }
-            return view('livewire.error-page', ['message' => 'Kamer is gesloten.'])
                 ->layout('layouts.app');
         }
 
