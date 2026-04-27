@@ -47,15 +47,28 @@ class Lobby extends Component
 
     public function render()
     {
-        $room = Room::where('code', $this->code)->with('players')->firstOrFail();
+        $room = Room::where('code', $this->code)->with('players')->first();
+
+        if (!$room) {
+            return view('livewire.error-page', ['message' => 'Kamer niet gevonden.'])
+                ->layout('layouts.app');
+        }
 
         if ($room->status === 'active') {
-            return redirect()->route('room.play', ['code' => $this->code]);
+            $this->redirect(route('room.play', ['code' => $this->code]), navigate: true);
+            return view('livewire.error-page', ['message' => 'Doorsturen naar quiz...'])
+                ->layout('layouts.app');
         }
 
         if ($room->status === 'closed') {
-            session()->flash('error', 'De host heeft de room gesloten.');
-            return redirect()->route('join');
+            if ($this->isHost) {
+                $this->redirect(route('host'), navigate: true);
+            } else {
+                session()->flash('error', 'De host heeft de room gesloten.');
+                $this->redirect(route('join'), navigate: true);
+            }
+            return view('livewire.error-page', ['message' => 'Kamer is gesloten.'])
+                ->layout('layouts.app');
         }
 
         return view('livewire.lobby', [

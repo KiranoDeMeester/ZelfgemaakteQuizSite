@@ -85,15 +85,28 @@ class QuizPlay extends Component
 
     public function render()
     {
-        $room = Room::where('code', $this->code)->with(['currentQuestion.answers', 'players'])->firstOrFail();
+        $room = Room::where('code', $this->code)->with(['currentQuestion.answers', 'players'])->first();
         
+        if (!$room) {
+            return view('livewire.error-page', ['message' => 'Quiz sessie niet gevonden.'])
+                ->layout('layouts.app');
+        }
+
         if ($room->status === 'finished') {
-            return redirect()->route('room.results', ['code' => $this->code]);
+            $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
+            return view('livewire.error-page', ['message' => 'Resultaten berekenen...'])
+                ->layout('layouts.app');
         }
 
         if ($room->status === 'closed') {
-            session()->flash('error', 'De host heeft de quiz beëindigd.');
-            return redirect()->route('join');
+            if ($this->isHost) {
+                $this->redirect(route('host'), navigate: true);
+            } else {
+                session()->flash('error', 'De host heeft de quiz beëindigd.');
+                $this->redirect(route('join'), navigate: true);
+            }
+            return view('livewire.error-page', ['message' => 'Kamer is gesloten.'])
+                ->layout('layouts.app');
         }
 
         // Sync question state for players
