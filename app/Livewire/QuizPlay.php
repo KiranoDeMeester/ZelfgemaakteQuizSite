@@ -73,7 +73,12 @@ class QuizPlay extends Component
     {
         if (!$this->isHost) return;
 
-        Room::where('code', $this->code)->update(['status' => 'closed']);
+        $room = Room::where('code', $this->code)->first();
+        if ($room) {
+            $room->update(['status' => 'closed']);
+        }
+
+        session()->forget('host_room_' . $this->code);
         
         return redirect()->route('host');
     }
