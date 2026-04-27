@@ -1,4 +1,10 @@
 <div wire:poll.2s class="space-y-8">
+    @if (session()->has('error'))
+        <div class="bg-red-500/20 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold animate-bounce text-center">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="glass rounded-2xl p-8 shadow-2xl text-center">
         @if($isHost)
             <h2 class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-2">Room Code</h2>

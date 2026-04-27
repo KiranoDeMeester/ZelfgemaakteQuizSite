@@ -28,7 +28,14 @@ class Lobby extends Component
     {
         if (!$this->isHost) return;
 
-        Room::where('code', $this->code)->update(['status' => 'active']);
+        $room = Room::where('code', $this->code)->withCount('players')->first();
+        
+        if ($room->players_count === 0) {
+            session()->flash('error', 'Je kunt de quiz niet starten zonder spelers!');
+            return;
+        }
+
+        $room->update(['status' => 'active']);
     }
 
     public function closeRoom()
