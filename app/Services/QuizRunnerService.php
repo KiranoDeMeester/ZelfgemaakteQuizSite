@@ -43,7 +43,10 @@ class QuizRunnerService
         $nextQ = $this->getNextQuestion($room, $room->current_question_id);
 
         if ($nextQ) {
-            $room->update(['current_question_id' => $nextQ->id]);
+            $room->update([
+                'current_question_id' => $nextQ->id,
+                'question_started_at' => now()
+            ]);
             return true;
         } else {
             $room->update(['status' => 'finished']);

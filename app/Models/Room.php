@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
-    protected $fillable = ['code', 'quiz_id', 'status', 'current_question_id'];
+    protected $fillable = ['code', 'quiz_id', 'status', 'current_question_id', 'question_started_at'];
+
+    protected $casts = [
+        'question_started_at' => 'datetime'
+    ];
 
     public function quiz() { return $this->belongsTo(Quiz::class); }
     public function players() { return $this->hasMany(Player::class); }

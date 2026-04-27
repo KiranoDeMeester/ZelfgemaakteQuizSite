@@ -13,18 +13,26 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Add Question Form -->
+        <!-- Add/Edit Question Form -->
         <div class="lg:col-span-1">
             <div class="glass p-8 rounded-3xl sticky top-8 border border-slate-700/50">
-                <h2 class="text-2xl font-bold text-white mb-6">Nieuwe Vraag</h2>
+                <h2 class="text-2xl font-bold text-white mb-6">{{ $editingQuestionId ? 'Bewerk Vraag' : 'Nieuwe Vraag' }}</h2>
                 
-                <form wire:submit="addQuestion" class="space-y-6">
+                <form wire:submit="saveQuestion" class="space-y-6">
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Vraagstelling</label>
                         <textarea wire:model="questionText" rows="3" 
                                   class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-600"
                                   placeholder="Typ hier de vraag..."></textarea>
                         @error('questionText') <span class="text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Afbeelding URL (optioneel)</label>
+                        <input type="url" wire:model="imageUrl" 
+                               class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-600"
+                               placeholder="https://example.com/image.jpg">
+                        @error('imageUrl') <span class="text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
@@ -52,12 +60,20 @@
                         @endforeach
                     </div>
 
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Voeg Vraag Toe
-                    </button>
+                    <div class="flex flex-col gap-3">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            {{ $editingQuestionId ? 'Sla Wijzigingen Op' : 'Voeg Vraag Toe' }}
+                        </button>
+
+                        @if($editingQuestionId)
+                            <button type="button" wire:click="cancelEdit" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl transition-all border border-slate-700">
+                                Annuleren
+                            </button>
+                        @endif
+                    </div>
                 </form>
             </div>
         </div>
@@ -73,7 +89,7 @@
             <h2 class="text-2xl font-bold text-white mb-6">Huidige Vragen ({{ $questions->count() }})</h2>
 
             @forelse($questions as $index => $q)
-                <div class="glass p-6 rounded-2xl border border-slate-700/50 animate-in fade-in slide-in-from-right-8 duration-300" style="animation-delay: {{ $index * 50 }}ms">
+                <div class="glass p-6 rounded-2xl border border-slate-700/50 animate-in fade-in slide-in-from-right-8 duration-300 {{ $editingQuestionId == $q->id ? 'ring-2 ring-blue-500' : '' }}" style="animation-delay: {{ $index * 50 }}ms">
                     <div class="flex justify-between items-start gap-4">
                         <div class="flex-grow">
                             <div class="flex items-center gap-2 mb-2">
@@ -91,13 +107,21 @@
                                 @endforeach
                             </div>
                         </div>
-                        <button wire:click="deleteQuestion({{ $q->id }})" 
-                                wire:confirm="Weet je zeker dat je deze vraag wilt verwijderen?"
-                                class="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
+                        <div class="flex flex-col gap-2">
+                            <button wire:click="editQuestion({{ $q->id }})" 
+                                    class="text-slate-600 hover:text-blue-400 p-2 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                            <button wire:click="deleteQuestion({{ $q->id }})" 
+                                    wire:confirm="Weet je zeker dat je deze vraag wilt verwijderen?"
+                                    class="text-slate-600 hover:text-red-400 p-2 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             @empty

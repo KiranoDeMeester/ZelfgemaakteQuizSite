@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Models\Answer;
 use App\Models\PlayerAnswer;
 use App\Services\QuizRunnerService;
+use App\Services\RoomService;
 use Livewire\Component;
 
 class QuizPlay extends Component
@@ -27,7 +28,12 @@ class QuizPlay extends Component
             $this->isHost = true;
             if (!$room->current_question_id) {
                 $firstQ = $service->getNextQuestion($room);
-                $room->update(['current_question_id' => $firstQ?->id]);
+                if ($firstQ) {
+                    $room->update([
+                        'current_question_id' => $firstQ->id,
+                        'question_started_at' => now()
+                    ]);
+                }
             }
         } else {
             $player = Player::find(session('player_id'));
@@ -44,8 +50,17 @@ class QuizPlay extends Component
         if ($this->isHost || $this->hasAnswered) return;
 
         $room = Room::where('code', $this->code)->first();
-        $player = Player::find(session('player_id'));
+        
+        // Check if time is up
         $question = $room->currentQuestion;
+        if ($question && $room->question_started_at) {
+            $elapsed = now()->diffInSeconds($room->question_started_at);
+            if ($elapsed >= $question->time_limit) {
+                return;
+            }
+        }
+
+        $player = Player::find(session('player_id'));
         $answer = Answer::find($answerId);
 
         if (!$question || !$answer) return;
@@ -90,6 +105,23 @@ class QuizPlay extends Component
             return $this->redirect(route('room.results', ['code' => $this->code]), navigate: true);
         }
 
+        $question = $room->currentQuestion;
+        $timeLeft = 0;
+        $isTimeUp = false;
+
+        if ($question && $room->question_started_at) {
+            $elapsed = now()->diffInSeconds($room->question_started_at);
+            $timeLeft = max(0, $question->time_limit - $elapsed);
+            $isTimeUp = $timeLeft <= 0;
+        }
+
+        $answeredCount = PlayerAnswer::where('question_id', $room->current_question_id)
+            ->whereIn('player_id', $room->players->pluck('id'))
+            ->count();
+        $totalPlayers = $room->players->count();
+        
+        $showResults = $isTimeUp || ($answeredCount == $totalPlayers && $totalPlayers > 0);
+
         // Sync question state for players
         if (!$this->isHost && $this->lastQuestionId !== $room->current_question_id) {
             $this->hasAnswered = false;
@@ -112,11 +144,12 @@ class QuizPlay extends Component
 
         return view('livewire.quiz-play', [
             'room' => $room,
-            'question' => $room->currentQuestion,
-            'totalPlayers' => $room->players->count(),
-            'answeredCount' => PlayerAnswer::where('question_id', $room->current_question_id)
-                ->whereIn('player_id', $room->players->pluck('id'))
-                ->count(),
+            'question' => $question,
+            'timeLeft' => $timeLeft,
+            'isTimeUp' => $isTimeUp,
+            'showResults' => $showResults,
+            'totalPlayers' => $totalPlayers,
+            'answeredCount' => $answeredCount,
             'playerStatuses' => $playerStatuses
         ])->layout('layouts.app');
     }

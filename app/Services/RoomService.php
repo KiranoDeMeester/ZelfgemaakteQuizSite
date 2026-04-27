@@ -20,7 +20,10 @@ class RoomService
 
     public function startRoom(Room $room): void
     {
-        $room->update(['status' => 'active']);
+        $room->update([
+            'status' => 'active',
+            'question_started_at' => now()
+        ]);
     }
 
     public function finishRoom(Room $room): void

@@ -9,21 +9,21 @@ class QuizList extends Component
 {
     public $newQuizTitle = '';
 
-    public function createQuiz()
+    public function createQuiz(\App\Services\QuizService $service)
     {
         $this->validate([
             'newQuizTitle' => 'required|min:3|max:255'
         ]);
 
-        $quiz = Quiz::create(['title' => $this->newQuizTitle]);
+        $quiz = $service->createQuiz($this->newQuizTitle);
         $this->newQuizTitle = '';
         
-        return redirect()->route('quizzes.edit', ['id' => $quiz->id]);
+        return $this->redirect(route('quizzes.edit', ['id' => $quiz->id]), navigate: true);
     }
 
-    public function deleteQuiz($id)
+    public function deleteQuiz($id, \App\Services\QuizService $service)
     {
-        Quiz::destroy($id);
+        $service->deleteQuiz($id);
     }
 
     public function render()

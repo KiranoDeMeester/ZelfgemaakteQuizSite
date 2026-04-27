@@ -25,8 +25,19 @@ test('host can create a room and see lobby', function () {
     $room = Room::first();
     expect($room)->not->toBeNull();
     
+    // Add a player so startQuiz works
+    $room->players()->create(['name' => 'Tester', 'score' => 0]);
+
+    session(['host_room_' . $room->code => true]);
+
     Livewire::test(Lobby::class, ['code' => $room->code])
-        ->assertSee($room->code);
+        ->assertSee($room->code)
+        ->call('startQuiz')
+        ->assertRedirect(route('room.play', ['code' => $room->code]));
+
+    $room->refresh();
+    expect($room->status)->toBe('active');
+    expect($room->question_started_at)->not->toBeNull();
 });
 
 test('player can join a room and answer a question', function () {

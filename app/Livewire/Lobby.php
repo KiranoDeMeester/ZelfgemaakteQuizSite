@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Room;
 use App\Models\Player;
 use App\Services\QrService;
+use App\Services\RoomService;
 use Livewire\Component;
 
 class Lobby extends Component
@@ -36,6 +37,8 @@ class Lobby extends Component
         }
 
         $roomService->startRoom($room);
+
+        return $this->redirect(route('room.play', ['code' => $this->code]), navigate: true);
     }
 
     public function closeRoom(RoomService $roomService)
@@ -63,7 +66,7 @@ class Lobby extends Component
                 ->layout('layouts.app');
         }
 
-        if ($room->status === 'active') {
+        if ($room->status === 'active' && !$this->isHost) {
             return $this->redirect(route('room.play', ['code' => $this->code]), navigate: true);
         }
 
