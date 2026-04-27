@@ -33,7 +33,10 @@ class Lobby extends Component
 
     public function closeRoom()
     {
-        if (!$this->isHost) return;
+        // Re-verify host status directly from session for maximum reliability
+        if (!session('host_room_' . $this->code)) {
+            return;
+        }
 
         $room = Room::where('code', $this->code)->first();
         if ($room) {
@@ -42,7 +45,7 @@ class Lobby extends Component
         
         session()->forget('host_room_' . $this->code);
         
-        return redirect()->route('host');
+        $this->redirect(route('host'), navigate: true);
     }
 
     public function render()
