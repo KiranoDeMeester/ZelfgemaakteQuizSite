@@ -43,5 +43,5 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Expose port
 EXPOSE 80
 
-# Start Supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Start Migrations and then Supervisor
+CMD php artisan migrate --force && /usr/bin/supervisord -c /etc/supervisord.conf
