@@ -83,6 +83,8 @@ class QuizPlay extends Component
         return redirect()->route('host');
     }
 
+    public function render()
+    {
         $room = Room::where('code', $this->code)->with(['currentQuestion.answers', 'players.playerAnswers'])->first();
         
         if (!$room) {
